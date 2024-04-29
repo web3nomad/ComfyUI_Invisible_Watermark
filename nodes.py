@@ -34,6 +34,7 @@ class InvisibleWatermarkEncode:
         for image in images:
             i = 255. * image.cpu().numpy()
             image_pil = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
+            image_pil = image_pil.resize((512, 512))
             image_np_array = np.array(image_pil)
 
             current_file_path = os.path.abspath(__file__)
