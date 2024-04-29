@@ -15,6 +15,11 @@ class InvisibleWatermarkEncode:
         return {
             "required": {
                 "images": ("IMAGE", ),
+                "extension": (['png', 'jpeg', 'webp'],),
+                "watermark": ("STRING", {
+                    "multiline": False,
+                    "default": "Hello World!"
+                }),
             },
         }
 
@@ -26,13 +31,17 @@ class InvisibleWatermarkEncode:
 
     CATEGORY = "WATERMARK"
 
-    def encode(self, images: list[torch.Tensor]):
+    def encode(self, images: list[torch.Tensor], extension: str, watermark: str):
         results = []
         for image in images:
             i = 255. * image.cpu().numpy()
             img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
-            result_img = generate_watermark(img, "Hello, World!")
-            results.append(result_img)
+            img_i = np.array(img)
+            img_o = generate_watermark(img_i, watermark)
+            buffered = io.BytesIO()
+            img_o.save(buffered, optimize=False, format=extension, compress_level=4)
+            base64_image = base64.b64encode(buffered.getvalue()).decode()
+            results.append(base64_image)
         return {"ui": {"images": results}}
 
 
