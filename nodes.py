@@ -1,10 +1,10 @@
-import base64
 from PIL import Image
 import torch
 import numpy as np
 import io
 
 from .core import generate_watermark
+import os
 
 class InvisibleWatermarkEncode:
     def __init__(self):
@@ -14,8 +14,7 @@ class InvisibleWatermarkEncode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "images": ("IMAGE", ),
-                "extension": (['png', 'jpeg', 'webp'],),
+                "images": ("IMAGE",),
                 "watermark": ("STRING", {
                     "multiline": False,
                     "default": "Hello World!"
@@ -23,26 +22,33 @@ class InvisibleWatermarkEncode:
             },
         }
 
-    RETURN_TYPES = ()
+    RETURN_TYPES = ("IMAGE",)
+    OUTPUT_IS_LIST = (True, )
 
     FUNCTION = "encode"
 
-    OUTPUT_NODE = True
-
     CATEGORY = "WATERMARK"
 
-    def encode(self, images: list[torch.Tensor], extension: str, watermark: str):
+    def encode(self, images, watermark):
         results = []
         for image in images:
             i = 255. * image.cpu().numpy()
-            img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
-            img_i = np.array(img)
-            img_o = generate_watermark(img_i, watermark)
-            buffered = io.BytesIO()
-            img_o.save(buffered, optimize=False, format=extension, compress_level=4)
-            base64_image = base64.b64encode(buffered.getvalue()).decode()
-            results.append(base64_image)
-        return {"ui": {"images": results}}
+            image_pil = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
+            image_np_array = np.array(image_pil)
+
+            current_file_path = os.path.abspath(__file__)
+            font_path = os.path.join(os.path.dirname(current_file_path), "font/ZiTiQuanWeiJunHei-W1-2.ttf")
+            result_image_pil = generate_watermark(
+                image_np_array, watermark, 
+                font=font_path
+            )
+
+            result_image_pil = result_image_pil.convert("RGB")
+            result_image_np = np.array(result_image_pil).astype(np.float32) / 255.0
+            result_image_tensor = torch.from_numpy(result_image_np)[None,]
+            results.append(result_image_tensor)
+
+        return (results, )
 
 
 # A dictionary that contains all nodes you want to export with their names
