@@ -1,0 +1,14 @@
+[project]
+name = "comfyui_invisible_watermark"
+description = "Nodes: InvisibleWatermarkEncode"
+version = "1.0.0"
+license = "LICENSE"
+
+[project.urls]
+Repository = "https://github.com/web3nomad/ComfyUI_Invisible_Watermark"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "ComfyUI_Invisible_Watermark"
+Icon = ""
